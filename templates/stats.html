@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Статистика{% endblock %}
+{% block content %}
+<h3>Статистика</h3>
+<form method="get">
+    <table width="100%" class="table table-bordered table-hover">
+        <tr>
+            <td colspan="2">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-default" data-period="today">Сегодня</button>
+                    <button type="button" class="btn btn-default" data-period="yesterday">Вчера</button>
+                    <button type="button" class="btn btn-default" data-period="week">Неделя</button>
+                    <button type="button" class="btn btn-default" data-period="month">Месяц</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>{{ form.date_start.label }}</td>
+            <td>
+                <div class="form-group col-sm-6">
+                    <div class="form-group">
+                        <div class='input-group date' id='datepicker_from'>
+                            {{ form.date_start }}
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                    {{ form.date_start.errors }}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>{{ form.date_end.label }}</td>
+            <td>
+                <div class="form-group col-sm-6">
+                    <div class="form-group">
+                        <div class='input-group date' id='datepicker_end'>
+                            {{ form.date_end }}
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                    {{ form.date_end.errors }}
+                </div>
+            </td>
+        </tr>
+    </table>
+    <button class="btn btn-success" type="submit">
+        <span class="glyphicon glyphicon-search"></span>&nbsp;Показать
+    </button>
+</form>
+<p class="text-primary">Группировка по датам: >= 7 дней &mdash; по дням; 7 дней <= &mdash; по часам; 48 часов <= &mdash; по минутам.</p>
+<div class="row">
+    <h3>Входящие звонки</h3>
+    <div id="general_stat_chart" style="min-width: 900px; min-height: 500px"></div>
+    <div id="general_stat_table" style="padding-top: 20px;"></div>
+    <h3>Сотрудники</h3>
+    <div id="employees_stat_chart" style="min-width: 900px; min-height: 500px"></div>
+    <div id="employees_stat_table" style="padding-top: 20px;"></div>
+    <div id="employees_stat_daily_chart" style="min-width: 900px; min-height: 650px"></div>
+    <!--<div id="employees_stat_daily_table" style="padding-top: 20px;"></div>-->
+    <h3>Региональное распределение новых звонков</h3>
+    <div id="regional_all_chart" style="min-width: 900px; min-height: 500px"></div>
+    <div id="regional_new_chart" style="min-width: 900px; min-height: 500px"></div>
+    <h3>Распределение звонков по сайтам</h3>
+    <div id="site_calls_all_chart" style="min-width: 900px; min-height: 500px"></div>
+    <div id="site_calls_new_chart" style="min-width: 900px; min-height: 500px"></div>
+    <h3>Количество потерянных звонков</h3>
+    <div id="status_chart" style="min-width: 900px; min-height: 500px"></div>
+    <div id="status_table" style="padding-top: 20px;"></div>
+    <!--<h3>Среднее время ожидания в очереди</h3>-->
+</div>
+{% endblock %}
+{% block footer_extra %}
+<script type="text/javascript">
+$(function () {
+    $('#id_date_start').datetimepicker({format: 'YYYY-MM-DD HH:mm', locale: 'ru'});
+    $('#id_date_end').datetimepicker({format: 'YYYY-MM-DD HH:mm', locale: 'ru'});
+    A.generalStatData = {{ general_stat | safe }};
+    A.employeeStatData = {{ employee_stat | safe }};
+    A.employeeStatDataDaily = {{ employee_stat_daily| safe}};
+    A.regionalAll = {{ regional_stat_all |safe }};
+    A.regionalNew = {{ regional_stat_new |safe }};
+    A.statusDaily = {{ call_status_stat |safe }};
+    A.siteCallsAll = {{ site_calls_all | safe }}
+    A.siteCallsNew = {{ site_calls_new | safe }}
+    //console.log(A.siteCallsNew);
+
+    A.switchDatepicker();
+    A.drawStatCharts();
+});
+</script>
+{% endblock %}

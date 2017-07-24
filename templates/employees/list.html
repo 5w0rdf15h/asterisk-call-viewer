@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Список сотрудников{% endblock %}
+{% block content %}
+<h3>Список сотрудников</h3>
+<a type="button" class="btn btn-default" href="{% url 'employee_add' %}">
+    <span class="glyphicon glyphicon-plus"></span>&nbsp;Добавить</a>&nbsp;
+<a class="btn btn-default" role="button" data-toggle="collapse"
+   href="#productsFilter" aria-expanded="false" aria-controls="productsFilter" id="productsFilterButton">
+    <span class="glyphicon glyphicon-filter"></span>&nbsp;Фильтр
+</a>
+
+<div class="panel panel-default collapse" id="productsFilter">
+    <div class="panel-heading">Фильтр</div>
+    <div class="panel-body">
+        <form method="get">
+            <table width="100%" class="table table-bordered table-hover">
+                <tr>
+                    <td>{{ form.name.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.department.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.department }}
+                            {{ form.department.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.num_items_on_page.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.num_items_on_page }}
+                            {{ form.num_items_on_page.errors }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <button class="btn btn-success" type="submit">
+                <span class="glyphicon glyphicon-search"></span>&nbsp;Поиск
+            </button>
+            {{ form.sort }}
+        </form>
+    </div>
+</div>
+<div class="row">
+    <table class="table table-hover table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Отдел</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for o in object_list %}
+        <tr>
+            <td>{{ o.pk }}</td>
+            <td>{{ o.name }}</td>
+            <td>{{ o.department.name }}</td>
+            <td>
+                <a class="btn btn-default btn-edit-website" href="{% url 'employee_edit' o.pk %}">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if object_list %}
+    {% include 'tags/paginator.html' %}
+    {% endif %}
+</div>
+
+{% endblock %}
+{% block footer_extra %}
+{% endblock %}

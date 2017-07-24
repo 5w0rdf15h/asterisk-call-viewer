@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load format_seconds %}
+{% load call_status %}
+{% load phone_website %}
+{% block title %}Главная страница{% endblock %}
+{% block content %}
+<h3>Список звонков</h3>
+<a class="btn btn-default" role="button" data-toggle="collapse"
+   href="#productsFilter" aria-expanded="false" aria-controls="productsFilter" id="productsFilterButton">
+    <span class="glyphicon glyphicon-filter"></span>&nbsp;Фильтр
+</a>
+<div class="panel panel-default collapse" id="productsFilter">
+    <div class="panel-heading">Фильтр</div>
+    <div class="panel-body">
+        <form method="get">
+            <table width="100%" class="table table-bordered table-hover">
+                <tr>
+                    <td colspan="2">
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="button" class="btn btn-default" data-period="today">Сегодня</button>
+                            <button type="button" class="btn btn-default" data-period="yesterday">Вчера</button>
+                            <button type="button" class="btn btn-default" data-period="week">Неделя</button>
+                            <button type="button" class="btn btn-default" data-period="month">Месяц</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.date_start.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            <div class="form-group">
+                                <div class='input-group date' id='datepicker_from'>
+                                    {{ form.date_start }}
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            {{ form.date_start.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.date_end.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            <div class="form-group">
+                                <div class='input-group date' id='datepicker_end'>
+                                    {{ form.date_end }}
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            {{ form.date_end.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.src.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.src }}
+                            {{ form.src.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.dst.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.dst }}
+                            {{ form.dst.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.website.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.website }}
+                            {{ form.website.errors }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ form.num_items_on_page.label }}</td>
+                    <td>
+                        <div class="form-group col-sm-6">
+                            {{ form.num_items_on_page }}
+                            {{ form.num_items_on_page.errors }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <button class="btn btn-success" type="submit">
+                <span class="glyphicon glyphicon-search"></span>&nbsp;Поиск
+            </button>
+            {{ form.sort }}
+        </form>
+    </div>
+</div>
+<div class="row">
+    <table class="table table-hover table-striped">
+        <thead>
+        <tr>
+            <th colspan="2">ID</th>
+            <th>Дата</th>
+            <th>Исходящий #</th>
+            <th>Набранный #</th>
+            <th>Caller ID</th>
+            <th>Регион</th>
+            <th>Website</th>
+            <th>Продолжительность</th>
+            <th>Статус</th>
+            <th>Новый</th>
+            <th>Запись</th>
+            <th>Коммент.</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% regroup object_list by uniqueid as call_list %}
+        {% for call in call_list %}
+            {% for o in call.list %}
+            <tr>
+                {% if forloop.counter == 1 %}
+                  <td>Полная запись</td>
+                {% elif forloop.counter > 1 %}
+                  <td>&#9675; Дочерняя запись</td>
+                {% endif %}
+                <td>{{ o.pk }}</td>
+                <td>{{ o.calldate }}</td>
+                <td>{{ o.src }}</td>
+                <td>{{ o.dst }}</td>
+                <td>{{ o.clid }} </td>
+                <td>{{ o.number.region }}</td>
+                <td>{{ o.get_website.website|default:'-' }}</td>
+                <td>{{ o.billsec | format_seconds }}</td>
+                {{ o.disposition | call_status | safe}}
+                <td><button class="btn {% if o.is_new %}btn-info{% else %}btn-default{% endif %} buttonStatusChange"
+                            data-current-status="{{ o.is_new }}" data-call-id="{{ o.id }}">{% if o.is_new %}Да{% else %}Нет{% endif %}</button>
+                </td>
+                <td>
+                    <button class="btn btn-default" data-call-uid="{{ o.uniqueid }}" data-call-date="{{ o.calldate |date:'Y.m.d'}}">
+                    <span class="glyphicon glyphicon-volume-up"></span>
+                    </button>
+                </td>
+                <td><span class="badge commentBadge" data-call-id="{{ o.id }}">0</span>
+                    <button class="btn btn-default addComment" data-call-id="{{ o.id }}">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if object_list %}
+    {% include 'tags/paginator.html' %}
+    {% endif %}
+    <div class="modal fade" tabindex="-1" role="dialog" id="playWavModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Прослушивание записи</h4>
+          </div>
+          <div class="modal-body" id="playWavModalContents">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <div class="modal fade" tabindex="-1" role="dialog" id="addCommentModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Комментарии</h4>
+          </div>
+          <div class="modal-body" id="addCommentModalContents">
+          </div>
+            <div id="commentsModalAddComment" class="form-group">
+                <textarea cols="10" rows="2" id="commentsContentsField" class="form-control"></textarea>
+                <input type="hidden" id="commentModalCallId" />
+            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="addCommentButton">
+                <span class="glyphicon glyphicon-plus"></span>&nbsp;Добавить
+            </button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+</div>
+{% endblock %}
+{% block footer_extra %}
+<script type="text/javascript">
+A.checkWavUrl = '{% url "check_wav_file_exists" %}';
+A.getWavUrl = '{% url "get_wav_file" %}';
+A.callIds = '{% for o in object_list %}{{o.pk}},{% endfor %}';
+A.numCommentsUrl = '{% url "get_num_comments" %}';
+A.callCommentsUrl = '{% url "get_call_comments" %}';
+A.addCommentUrl = '{% url "add_call_comment" %}';
+$(function () {
+    $('#id_date_start').datetimepicker({format: 'YYYY-MM-DD HH:mm', locale: 'ru'});
+    $('#id_date_end').datetimepicker({format: 'YYYY-MM-DD HH:mm', locale: 'ru'});
+    A.switchDatepicker();
+    A.updateCallStatusUrl = '{% url "update_call_status" %}';
+    A.changeCallStatus();
+    A.callListInit();
+    $('#addCommentButton').on('click', function() {
+        console.log('btn click');
+        $('#addCommentButton').prop('disabled', true);
+        var commentContents = $('#commentsContentsField').val();
+        var callId = $('#commentModalCallId').val();
+        $.post(A.addCommentUrl, {'call_id': callId, 'contents': commentContents}, function(response) {
+            $('#commentsContentsField').val('');
+            $('#addCommentButton').prop('disabled', false);
+            A.getCallComments(callId);
+        });
+    });
+});
+</script>
+{% endblock %}

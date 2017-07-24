@@ -1,0 +1,2 @@
+CEL - https://wiki.asterisk.org/wiki/pages/viewpage.action?pageId=5242932
+CDR - https://wiki.asterisk.org/wiki/pages/viewpage.action?pageId=5242894
